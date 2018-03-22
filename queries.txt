@@ -1,0 +1,94 @@
+var pipeline= [{$match: {"imdb.rating":{$gte: 7}, genres:{$nin: ["Crime","Horror"]}, rated:{$in:["PG","G"]}, languages:{$all:["English","Japanese"]} }}, {$project: {_id:0,title:1,rated:1}}]
+
+
+db.movies.aggregate([{$project: {words: {$split: ["$title"," "]}}}, {$match: {words: {$size: 1}}}]).itcount()
+
+db.movies.findOne({title: "Life Is Beautiful"}, { _id: 0, cast: 1, writers: 1})
+
+cast, writers, directors
+
+db.movies.aggregate([{$project:{
+
+   cast: {$map: {input:"$cast",as:"casts",in:{$arrayElemAt:[{$split:{"$$casts"," ("}},0]}}},
+   writers: {$map: {input:"$writers",as:"writer",in:{$arrayElemAt:[{$split:{"$$writer"," ("}},0]}}}
+   directors: {$map: {input:"$directors",as:"director",in:{$arrayElemAt:[{$split:{"$$director"," ("}},0]}}}
+  
+  
+  }}])
+  
+db.movies.aggregate([
+    {$project:{cast: {$map: 
+	                        {input:"$cast",as:"casts",in:{$arrayElemAt:[{$split:["$$casts"," ("]},0]}}
+					 },
+               writers: {$map: {input:"$writers",as:"writer",in:{$arrayElemAt:[{$split:["$$writer"," ("]},0]}}
+			            },
+               directors: {$map: {input:"$directors",as:"director",in:{$arrayElemAt:[{$split:["$$director"," ("]},0]}}
+			              },
+			   sizeMatch1: {$size: {$ifNull:[{$setIntersection:["$cast","$writers"]},[]]}},
+               sizeMatch2: {$size: {$ifNull:[{$setIntersection:["$directors","$writers"]},[]]}},
+               sizeMatch3: {$size: {$ifNull:[{$setIntersection:["$directors","$cast"]},[]]}}		   
+              }
+			  
+	}, 
+	{$match: {sizeMatch1:{$gte: 1}, sizeMatch2: {$gte: 1}, sizeMatch3: {$gte: 1}}},
+	{$project: {sizeMatch1:0, sizeMatch2:0, sizeMatch3:0}}
+ 
+ ]).itcount()
+ 
+ 
+db.movies.aggregate([
+
+  {$match: 
+    {cast: {$elemMatch: {$exists: true}}},
+	{writers: {$elemMatch: {$exists: true}}},
+	{directors: {$elemMatch: {$exists: true}}}
+  },
+  {$project:
+    {cast: 1},
+	{directors: 1},
+	{writers: {$map: 
+	             {input: "$writers", 
+				  as: "writer", 
+				  in: {$arrayElemAt: [{$split: ["$$writer", " ("]},0]}
+				 }
+	          }	
+	}
+  },
+  {$match: {$gte: [{$size: {$setIntersection:["$cast","$writers","$directors"]}},1]}}
+  ]).itcount()
+ 
+ 
+db.movies.aggregate([
+  {$match: {awards: {$regex: ".*Won.*Oscar.*"}}},
+  {$group: {_id: null, highest_rating:{$max: "$imdb.rating"}, lowest_rating:{$min: "$imdb.rating"}, average_rating:{$avg: "$imdb.rating"}, deviation:{$stdDevSamp: "$imdb.rating"}}},
+  {$project: {_id:0}}
+])
+
+db.movies.aggregate([
+  {$match: {languages: "English", cast:{$exists:true}}},
+  {$unwind: "$cast"},
+  {$group: {_id: "$cast", numFilms:{$sum: 1}, average:{$avg: "$imdb.rating"}   }},
+  {$sort: {numFilms:-1}},
+  {$limit: 1}
+])
+
+db.air_alliances.aggregate([
+  {$lookup:{
+    from: "air_routes",
+	localField: "airlines",
+	foreignField: "airline.name",
+	as: "routes"
+  
+  }},
+  {$unwind: "$routes"},
+  {$match: {$or:[{"routes.airplane":{$regex: "747"}},{"routes.airplane":{$regex: "380"}}]}},
+  {$group: {_id: "$name", count: {$sum: 1}}},
+  {$sort: {count: -1}}
+
+])
+
+
+
+ 
+ 
+ 
