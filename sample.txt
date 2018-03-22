@@ -1,5 +1,6 @@
 db.magazines.update(
 {$and:[{"Articles.Writers.Name":"tom"},{"Articles.Writers.Email":"tom@example.com"}]},
-{$pull: {"Articles.$.Writers":{"Name":"tom", "Email":"tom@example.com"}}}
+{$pull: {"Articles.$.Writers":{"Name":"tom", "Email":"tom@example.com"}}},
+{multi:true}
 
 )
