@@ -87,8 +87,21 @@ db.air_alliances.aggregate([
 
 ])
 
+db.magazines.update(
+{$and:[{"Articles.Writers.Name":"tom"},{"Articles.Writers.Email":"tom@example.com"}]},
+{$pull: {"Articles.$.Writers":{"Name":"tom", "Email":"tom@example.com"}}},
+{multi:true}
 
+)
 
+db.products.aggregate([
+  {$match:{"subsections.subtitle":{$regex:"Analysis"}}},
+  {$unwind: "$subsections"},
+  {$match:{"subsections.subtitle":{$regex:"Analysis"}}},
+  {$group:{_id:"$_id",subsections:{$push: {subtitle:"$subsections.subtitle",content:"$subsections.content"}}}},
+  
+  
+])
  
  
  
