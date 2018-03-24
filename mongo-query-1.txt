@@ -1,10 +1,11 @@
 db.products.aggregate([
- {$redact:{
-      $cond:{
-            if:{$ne:["$product","xyz"]},
-            then: "$$DESCEND",
-            else: "$$PRUNE"
-          }
-     }}
-
+  {$match:{"subsections.subtitle":{$regex:"Analysis"}}},
+  {$unwind: "$subsections"},
+  {$match:{"subsections.subtitle":{$regex:"Analysis"}}},
+  {$group:{_id:"$_id", subsections:{$push: {subtitle:"$subsections.subtitle",content:"$subsections.content"}}}},
+  
+  
 ])
+
+
+
