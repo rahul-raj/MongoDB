@@ -1,0 +1,10 @@
+db.products.aggregate([
+ {$redact:{
+      $cond:{
+            if:{$ne:["$product","xyz"]},
+            then: "$$DESCEND",
+            else: "$$PRUNE"
+          }
+     }}
+
+])
