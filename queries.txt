@@ -103,5 +103,19 @@ db.products.aggregate([
   
 ])
  
- 
+db.colors.aggregate([{
+  $facet:{
+      cond1:[{$match:{color:"red"}}],
+      cond2:[{$match:{color:"yellow"}}]
+  }},
+
+  {$project:{match1: "$cond1", match2:"$cond2" ,size1:{$size: "$cond1"}, 
+  size2:{$size: "$cond2"}}},
+
+  {$project:{result:{$cond:[{$and:[{$gte:["$size1",1]},{$gte:
+  ["$size2",1]}]},{$concatArrays:["$match1","$match2"]},[]]}}}
+
+])
+
+
  
