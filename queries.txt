@@ -133,3 +133,23 @@ db.restaurants.aggregate([
     }}
 ])
  
+db.sample.aggregate([
+  {$project: {
+         results:{
+               $arrayToObject:{
+                     $map:{
+                       input:"$answers",
+                       as:"answer",
+                       in:[{
+                           
+                             $arrayElemAt:["$questions", {$indexOfArray:["$answers","$$answer"]}]
+                           
+                           },"$$answer" ]
+                   
+                      }
+                   
+                   }             
+             }     
+      }}
+
+])
