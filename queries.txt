@@ -117,5 +117,19 @@ db.colors.aggregate([{
 
 ])
 
-
+db.restaurants.aggregate([
+{$project: {
+       result:{
+             $map:{
+                   input:"$grades",
+                   as:"grade",
+                   in:{
+                        $objectToArray : "$$grade"
+                       
+                       }
+                 
+                }          
+           }   
+    }}
+])
  
