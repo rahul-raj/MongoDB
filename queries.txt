@@ -153,3 +153,18 @@ db.sample.aggregate([
       }}
 
 ])
+
+db.sample.aggregate([
+    {
+        $addFields: {
+            totalCoins: {
+                $reduce: {
+                    input: "$refferedUsers",
+                    initialValue: 0,
+                    in: { $add : ["$$value", "$$this.coins"] }
+                }
+            }
+        }
+    },
+    {$addFields:{totalCoins:{$add:["$totalCoins","$coinsEarned"]}}}
+])
